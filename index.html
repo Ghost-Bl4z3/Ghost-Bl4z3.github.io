@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sphesihle Dwayisa — Security Researcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1219;
+    --surface: #111820;
+    --border: #1e2d3d;
+    --accent: #00e5ff;
+    --accent2: #ff3c6e;
+    --green: #39ff85;
+    --text: #cdd6e0;
+    --muted: #4a6278;
+    --white: #f0f6fc;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.015) 2px,
+      rgba(0,229,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* NOISE GRAIN */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+    animation: grain 0.5s steps(2) infinite;
+  }
+
+  @keyframes grain {
+    0%, 100% { transform: translate(0,0); }
+    10% { transform: translate(-1%,-1%); }
+    20% { transform: translate(1%,0); }
+    30% { transform: translate(-1%,1%); }
+    40% { transform: translate(0,-1%); }
+    50% { transform: translate(1%,1%); }
+    60% { transform: translate(-1%,0); }
+    70% { transform: translate(0,1%); }
+    80% { transform: translate(1%,-1%); }
+    90% { transform: translate(-1%,1%); }
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(8,12,16,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--accent2); }
+
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 40px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    pointer-events: none;
+    animation: drift 8s ease-in-out infinite;
+  }
+
+  .hero-glow2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,60,110,0.06) 0%, transparent 70%);
+    bottom: 0; right: 0;
+    pointer-events: none;
+    animation: drift2 10s ease-in-out infinite;
+  }
+
+  @keyframes drift {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(40px, 30px); }
+  }
+  @keyframes drift2 {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(-30px, -20px); }
+  }
+
+  .hero-inner {
+    max-width: 900px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.0;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.4s;
+  }
+
+  h1 .highlight {
+    color: var(--accent);
+    position: relative;
+  }
+
+  h1 .red { color: var(--accent2); }
+
+  .hero-sub {
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 560px;
+    margin-top: 20px;
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.6s;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.8s;
+  }
+
+  .btn {
+    padding: 12px 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  .btn-primary:hover { background: #33eeff; box-shadow: 0 0 24px rgba(0,229,255,0.4); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  .btn-outline:hover { border-color: var(--accent); box-shadow: 0 0 16px rgba(0,229,255,0.15); }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 40px;
+    display: flex;
+    gap: 40px;
+    overflow-x: auto;
+    white-space: nowrap;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 1s;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+  }
+
+  .stat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .stat-dot.red { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  .stat-dot.blue { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .stat-label { color: var(--muted); }
+  .stat-val { color: var(--white); font-weight: 700; }
+
+  /* SECTIONS */
+  section {
+    padding: 80px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .section-tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 80px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    color: var(--white);
+    margin-bottom: 40px;
+    letter-spacing: -0.02em;
+  }
+
+  /* BUGS / VULNS */
+  .vulns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .vuln-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .vuln-card.visible {
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .vuln-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .vuln-card:hover { border-color: var(--accent2); transform: translateY(-4px); }
+  .vuln-card:hover::before { opacity: 1; }
+
+  .vuln-sev {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+
+  .sev-high { background: rgba(255,60,110,0.15); color: var(--accent2); border: 1px solid rgba(255,60,110,0.3); }
+  .sev-med { background: rgba(255,180,0,0.1); color: #ffb400; border: 1px solid rgba(255,180,0,0.3); }
+
+  .vuln-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--white);
+    margin-bottom: 10px;
+  }
+
+  .vuln-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .vuln-tag {
+    margin-top: 14px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  /* PROJECT */
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    transition: border-color 0.3s;
+  }
+
+  .project-card:hover { border-color: var(--accent); }
+
+  .project-info { padding: 40px; }
+
+  .project-label {
+    font-size: 0.68rem;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .project-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--white);
+    margin-bottom: 14px;
+    letter-spacing: -0.02em;
+  }
+
+  .project-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 24px;
+  }
+
+  .feature-list {
+    list-style: none;
+    margin-bottom: 28px;
+  }
+
+  .feature-list li {
+    font-size: 0.78rem;
+    color: var(--text);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .feature-list li::before {
+    content: '▸';
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .project-visual {
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .terminal-header {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .terminal-header::before {
+    content: 'source_code_analyzer.py';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-red { background: #ff5f57; }
+  .t-yellow { background: #ffbd2e; }
+  .t-green { background: #28c840; }
+
+  .terminal-line { margin: 3px 0; }
+  .t-comment { color: var(--muted); }
+  .t-cmd { color: var(--green); }
+  .t-out { color: var(--text); }
+  .t-found { color: var(--accent2); }
+  .t-url { color: #ffb400; }
+
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--accent);
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* LABS */
+  .labs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .lab-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lab-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .lab-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .lab-card:hover::after { transform: scaleX(1); }
+
+  .lab-icon {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+
+  .lab-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  .lab-desc {
+    font-size: 0.7rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* SKILLS */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .skill-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .skill-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+  }
+
+  .skill-name { color: var(--text); }
+  .skill-pct { color: var(--accent); }
+
+  .skill-bar-bg {
+    height: 4px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skill-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px rgba(0,229,255,0.5);
+  }
+
+  /* ABOUT */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .about-text p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.9;
+    margin-bottom: 16px;
+  }
+
+  .about-text p strong { color: var(--accent); }
+
+  .about-details { display: flex; flex-direction: column; gap: 14px; }
+
+  .detail-row {
+    display: flex;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    align-items: center;
+  }
+
+  .detail-key {
+    color: var(--muted);
+    min-width: 90px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .detail-val { color: var(--white); }
+
+  /* CONTACT */
+  .contact-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 60px;
+    text-align: center;
+    clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(0,229,255,0.06), transparent);
+    pointer-events: none;
+  }
+
+  .contact-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+
+  .contact-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 32px;
+    line-height: 1.7;
+  }
+
+  .contact-links {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 40px;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  @media (max-width: 768px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 20px 60px; }
+    section { padding: 60px 20px; }
+    .project-card { grid-template-columns: 1fr; }
+    .project-visual { display: none; }
+    .about-grid { grid-template-columns: 1fr; gap: 30px; }
+    .skills-grid { grid-template-columns: 1fr; }
+    .contact-inner { padding: 40px 24px; }
+    .status-bar { padding: 14px 20px; }
+    footer { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Ghost<span>_Bl4z3</span></a>
+  <div class="nav-links">
+    <a href="#bugs">Research</a>
+    <a href="#project">Tools</a>
+    <a href="#labs">Labs</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="padding-top:120px; max-width:100%; padding-left:40px; padding-right:40px;">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-inner">
+    <div class="hero-tag">Security Researcher &amp; Tool Developer</div>
+    <h1>Sphesihle<br><span class="highlight">Dwayisa</span></h1>
+    <p class="hero-sub">
+      Finding what others miss. I research web application vulnerabilities,
+      build reconnaissance tooling, and practice offensive security —
+      driven by curiosity, not certificates.
+    </p>
+    <div class="hero-btns">
+      <a href="#bugs" class="btn btn-primary">View Research</a>
+      <a href="https://github.com/Ghost-Bl4z3" target="_blank" class="btn btn-outline">GitHub ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="stat"><div class="stat-dot"></div><span class="stat-label">Status:</span><span class="stat-val">Actively Researching</span></div>
+  <div class="stat"><div class="stat-dot red"></div><span class="stat-label">Bugs Found:</span><span class="stat-val">4 Disclosed</span></div>
+  <div class="stat"><div class="stat-dot blue"></div><span class="stat-label">Tools Built:</span><span class="stat-val">1 Open Source</span></div>
+  <div class="stat"><div class="stat-dot"></div><span class="stat-label">Location:</span><span class="stat-val">Durban, KZN, ZA</span></div>
+  <div class="stat"><div class="stat-dot blue"></div><span class="stat-label">Approach:</span><span class="stat-val">Responsible Disclosure</span></div>
+</div>
+
+<!-- BUGS -->
+<section id="bugs">
+  <div class="section-tag">Vulnerability Research</div>
+  <div class="section-title">Responsible Disclosures</div>
+  <div class="vulns-grid">
+
+    <div class="vuln-card">
+      <div class="vuln-sev sev-high">High</div>
+      <div class="vuln-title">Authentication &amp; OTP Bypass</div>
+      <div class="vuln-desc">Identified flaws in multi-step authentication flows where server responses could be manipulated client-side to bypass OTP verification entirely — granting unauthorized account access.</div>
+      <div class="vuln-tag">
+        <span class="tag">Response Manipulation</span>
+        <span class="tag">Auth Bypass</span>
+        <span class="tag">OTP</span>
+      </div>
+    </div>
+
+    <div class="vuln-card">
+      <div class="vuln-sev sev-high">High</div>
+      <div class="vuln-title">Brute-Force Logic Flaw</div>
+      <div class="vuln-desc">Discovered that the account lockout counter reset on any valid login within the attempt window. Wrote a custom Python script exploiting this to enumerate credentials without triggering lockout.</div>
+      <div class="vuln-tag">
+        <span class="tag">Brute Force</span>
+        <span class="tag">Logic Flaw</span>
+        <span class="tag">Custom Script</span>
+      </div>
+    </div>
+
+    <div class="vuln-card">
+      <div class="vuln-sev sev-med">Medium</div>
+      <div class="vuln-title">IDOR on Cart</div>
+      <div class="vuln-desc">Found an Insecure Direct Object Reference vulnerability in a shopping cart endpoint. By manipulating object identifiers in requests, it was possible to access and view other users' cart data.</div>
+      <div class="vuln-tag">
+        <span class="tag">IDOR</span>
+        <span class="tag">Broken Access Control</span>
+        <span class="tag">OWASP A01</span>
+      </div>
+    </div>
+
+    <div class="vuln-card">
+      <div class="vuln-sev sev-med">Medium</div>
+      <div class="vuln-title">Information Disclosure</div>
+      <div class="vuln-desc">Located a forgotten, unauthenticated endpoint leaking sensitive application data not intended for public access. Classic case of inadequate access control on deprecated functionality.</div>
+      <div class="vuln-tag">
+        <span class="tag">Info Disclosure</span>
+        <span class="tag">Forgotten Endpoint</span>
+        <span class="tag">OWASP A02</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROJECT -->
+<section id="project" style="max-width:1100px; margin:0 auto; padding:0 40px 80px;">
+  <div class="section-tag">Open Source</div>
+  <div class="section-title">Tools Built</div>
+  <div class="project-card">
+    <div class="project-info">
+      <div class="project-label">Python · Reconnaissance</div>
+      <div class="project-title">Source Code Analyzer</div>
+      <p class="project-desc">A Python-based web recon tool that tears apart HTML source code to surface security-relevant data — the kind of intel that matters in the early stages of a pentest or bug bounty.</p>
+      <ul class="feature-list">
+        <li>Extracts URLs, JS files, IP addresses &amp; emails</li>
+        <li>Discovers hidden/interesting endpoints via wordlists</li>
+        <li>Supports internal wordlist or custom wordlist modes</li>
+        <li>Designed for authorized security testing &amp; recon</li>
+      </ul>
+      <a href="https://github.com/Ghost-Bl4z3/source-code-analyzer" target="_blank" class="btn btn-primary">View on GitHub ↗</a>
+    </div>
+    <div class="project-visual">
+      <div class="terminal-header">
+        <div class="t-dot t-red"></div>
+        <div class="t-dot t-yellow"></div>
+        <div class="t-dot t-green"></div>
+      </div>
+      <div class="terminal-line t-comment"># Run with custom wordlist</div>
+      <div class="terminal-line t-cmd">$ python3 source_code_analyzer.py \</div>
+      <div class="terminal-line t-cmd">&nbsp;&nbsp;--file target.html \</div>
+      <div class="terminal-line t-cmd">&nbsp;&nbsp;--wordlist wordlist.txt</div>
+      <div class="terminal-line">&nbsp;</div>
+      <div class="terminal-line t-out">[*] Analyzing source...</div>
+      <div class="terminal-line t-found">[+] URLs found: 14</div>
+      <div class="terminal-line t-found">[+] JS files: 6</div>
+      <div class="terminal-line t-url">[+] Endpoints: /api/v1/admin</div>
+      <div class="terminal-line t-url">[+] Endpoints: /internal/config</div>
+      <div class="terminal-line t-found">[+] Emails: 2</div>
+      <div class="terminal-line t-found">[+] IPs: 1</div>
+      <div class="terminal-line">&nbsp;</div>
+      <div class="terminal-line t-cmd">$ <span class="cursor"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- LABS -->
+<section id="labs">
+  <div class="section-tag">Practical Training</div>
+  <div class="section-title">Labs &amp; Platforms</div>
+  <div class="labs-grid">
+    <div class="lab-card">
+      <div class="lab-icon">🔐</div>
+      <div class="lab-name">TryHackMe</div>
+      <div class="lab-desc">Guided rooms covering web security, Linux, networking &amp; exploitation</div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-icon">📦</div>
+      <div class="lab-name">HackTheBox</div>
+      <div class="lab-desc">Black-box penetration testing against realistic machine environments</div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-icon">🕷️</div>
+      <div class="lab-name">PortSwigger</div>
+      <div class="lab-desc">Web Security Academy — SQLi, XSS, auth flaws, IDOR, business logic</div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-icon">💀</div>
+      <div class="lab-name">Metasploitable 2</div>
+      <div class="lab-desc">Exploitation of intentionally vulnerable VM for hands-on practice</div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-icon">🧃</div>
+      <div class="lab-name">OWASP Juice Shop</div>
+      <div class="lab-desc">OWASP Top 10 challenges in a modern vulnerable web application</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT & SKILLS -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-text">
+      <div class="section-tag">About</div>
+      <div class="section-title">The Person Behind<br>the Terminal</div>
+      <p>I'm a self-taught security researcher from Durban, South Africa. No degree, no expensive bootcamp — just relentless curiosity and a habit of breaking things to understand how they work.</p>
+      <p>I practise on labs daily, hunt for bugs in real applications, and build tools to sharpen my recon skills. Every vulnerability I've found was <strong>responsibly disclosed</strong> — I'm here to make things more secure, not exploit them.</p>
+      <p>Currently working toward my first industry certification while continuing to grow through practical, hands-on work.</p>
+    </div>
+    <div>
+      <div class="about-details" style="margin-bottom:32px;">
+        <div class="detail-row"><span class="detail-key">Location</span><span class="detail-val">Durban, KwaZulu-Natal</span></div>
+        <div class="detail-row"><span class="detail-key">Focus</span><span class="detail-val">Web App Security</span></div>
+        <div class="detail-row"><span class="detail-key">Languages</span><span class="detail-val">Python, Bash</span></div>
+        <div class="detail-row"><span class="detail-key">OS</span><span class="detail-val">Linux (primary), Windows</span></div>
+        <div class="detail-row"><span class="detail-key">Approach</span><span class="detail-val">Responsible Disclosure</span></div>
+        <div class="detail-row"><span class="detail-key">GitHub</span><span class="detail-val"><a href="https://github.com/Ghost-Bl4z3" target="_blank" style="color:var(--accent); text-decoration:none;">Ghost-Bl4z3 ↗</a></span></div>
+      </div>
+      <div class="skills-grid" id="skills-grid">
+        <div class="skill-row">
+          <div class="skill-label"><span class="skill-name">Web App Pentesting</span><span class="skill-pct">80%</span></div>
+          <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="80"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-label"><span class="skill-name">Python Scripting</span><span class="skill-pct">70%</span></div>
+          <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="70"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-label"><span class="skill-name">Reconnaissance</span><span class="skill-pct">85%</span></div>
+          <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="85"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-label"><span class="skill-name">Linux</span><span class="skill-pct">75%</span></div>
+          <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="75"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-label"><span class="skill-name">Burp Suite</span><span class="skill-pct">75%</span></div>
+          <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="75"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-label"><span class="skill-name">OWASP Top 10</span><span class="skill-pct">80%</span></div>
+          <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="80"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <div class="contact-title">Let's Connect</div>
+    <p class="contact-sub">Open to junior security roles, internships, bug bounty collaboration,<br>or just talking shop about web application security.</p>
+    <div class="contact-links">
+      <a href="https://github.com/Ghost-Bl4z3" target="_blank" class="btn btn-primary">GitHub Profile</a>
+      <a href="mailto:sphehbamali@gmail.com" class="btn btn-outline">Send Email</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Built by Sphesihle Dwayisa &nbsp;·&nbsp; Durban, South Africa &nbsp;·&nbsp; github.com/Ghost-Bl4z3</p>
+</footer>
+
+<script>
+  // Scroll reveal for vuln cards
+  const cards = document.querySelectorAll('.vuln-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  cards.forEach(c => observer.observe(c));
+
+  // Skill bars animate on scroll
+  const skillBars = document.querySelectorAll('.skill-bar-fill');
+  const skillObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      skillBars.forEach(bar => {
+        bar.style.width = bar.dataset.width + '%';
+      });
+      skillObserver.disconnect();
+    }
+  }, { threshold: 0.3 });
+  skillObserver.observe(document.getElementById('skills-grid'));
+
+  // Typing effect for terminal (subtle re-blink on hover)
+  const terminal = document.querySelector('.project-visual');
+  if (terminal) {
+    terminal.addEventListener('mouseenter', () => {
+      const lines = terminal.querySelectorAll('.terminal-line');
+      lines.forEach((line, i) => {
+        line.style.opacity = '0';
+        setTimeout(() => { line.style.transition = 'opacity 0.15s'; line.style.opacity = '1'; }, i * 60);
+      });
+    });
+  }
+</script>
+</body>
+</html>
