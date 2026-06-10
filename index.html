@@ -761,7 +761,8 @@
 <!-- STATUS BAR -->
 <div class="status-bar">
   <div class="stat"><div class="stat-dot"></div><span class="stat-label">Status:</span><span class="stat-val">Actively Researching</span></div>
-  <div class="stat"><div class="stat-dot red"></div><span class="stat-label">Bugs Found:</span><span class="stat-val">4 Disclosed</span></div>
+  <div class="stat"><div class="stat-dot red"></div><span class="stat-label">Bugs Found:</span><span class="stat-val">7</span></div>
+    <div class="stat"><div class="stat-dot orange"></div><span class="stat-label">Duplicates:</span><span class="stat-val">3</span></div>
   <div class="stat"><div class="stat-dot blue"></div><span class="stat-label">Tools Built:</span><span class="stat-val">1 Open Source</span></div>
   <div class="stat"><div class="stat-dot"></div><span class="stat-label">Location:</span><span class="stat-val">Durban, KZN, ZA</span></div>
   <div class="stat"><div class="stat-dot blue"></div><span class="stat-label">Approach:</span><span class="stat-val">Responsible Disclosure</span></div>
@@ -807,6 +808,16 @@
     </div>
 
     <div class="vuln-card">
+      <div class="vuln-sev sev-high">High</div>
+      <div class="vuln-title">Insecure OTP Lifecycle and Lack of Code Invalidation</div>
+      <div class="vuln-desc">Identified a flaw where The backend failed to invalidate previously issued One-Time Passwords (OTPs) when a new OTP is requested for the same user account</div>
+      <div class="vuln-tag">
+        <span class="tag">OTP Bypass</span>
+        <span class="tag">Auth Bypass</span>
+      </div>
+    </div>
+
+    <div class="vuln-card">
       <div class="vuln-sev sev-med">Medium</div>
       <div class="vuln-title">Information Disclosure</div>
       <div class="vuln-desc">Located a forgotten, unauthenticated endpoint leaking sensitive application data not intended for public access. Classic case of inadequate access control on deprecated functionality.</div>
@@ -814,6 +825,25 @@
         <span class="tag">Info Disclosure</span>
         <span class="tag">Forgotten Endpoint</span>
         <span class="tag">OWASP A02</span>
+      </div>
+    </div>
+
+    <div class="vuln-card">
+      <div class="vuln-sev sev-high">High</div>
+      <div class="vuln-title">Session Fixation</div>
+      <div class="vuln-desc">Identified a flaw where a server fails to properly invalidate historical state or session tokens generated during the authentication flow</div>
+      <div class="vuln-tag">
+        <span class="tag">Old Session Reuse</span>
+        <span class="tag">Auth Bypass</span>
+      </div>
+    </div>
+
+    <div class="vuln-card">
+      <div class="vuln-sev sev-high">Medium</div>
+      <div class="vuln-title">Email Verification bypass</div>
+      <div class="vuln-desc">The application backend prematurely registers a new user profile as an existing, active account in the database before the mandatory email verification step is completed. By leveraging the password reset functionality immediately after account creation</div>
+      <div class="vuln-tag">
+        <span class="tag">A07:2021-Identification and Authentication Failures</span>
       </div>
     </div>
 
